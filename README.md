@@ -2,7 +2,7 @@
 
 This repository hosts a collection of OpenCTI connectors developed to integrate and enhance threat intelligence workflows. Currently, it includes three connectors:
 
-1. **Lobo Guará Certificate Domains**
+1. **Monitored Certificates by Lobo Guará**
    - Retrieves a list of monitored certificate domains from the Lobo Guará platform (https://loboguara.olivsec.com.br/).
    - Creates observables within OpenCTI.
 
