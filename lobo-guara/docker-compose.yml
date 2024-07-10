@@ -7,8 +7,8 @@ services:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN= # UUID token of your OpenCTI
       - CONNECTOR_ID= # Generate a UUID to put here
-      - LOBOGUARA_USERNAME= # Your username on the Lobo Guará platform
-      - LOBOGUARA_PASSWORD= # Your password on the Lobo Guará platform
+      - LOBOGUARA_USERNAME= # Your username on the Lobo Guará project
+      - LOBOGUARA_PASSWORD= # Your password on the Lobo Guará project
       - LOBOGUARA_INTERVAL_SEC=3600
       - LOBOGUARA_VERIFY_SSL=true
       - LOBOGUARA_URL=https://loboguara.olivsec.com.br/api/monitored_certificate_domains
