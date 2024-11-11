@@ -22,3 +22,39 @@ To run the connector, use the following command:
 
 ```sh
 docker-compose up --build
+```
+
+## Docker Compose Configuration
+
+An example `docker-compose.yml` configuration for the connector:
+
+```yaml
+version: '3'
+services:
+  lobo_guara_connector:
+    image: olivsec/lobo_guara_connector:latest
+    container_name: lobo_guara_connector
+    environment:
+      - OPENCTI_URL=http://opencti:8080
+      - OPENCTI_TOKEN=your_opencti_token
+      - CONNECTOR_ID=unique_connector_id
+      - LOBOGUARA_API_TOKEN=your_loboguara_api_token
+      - LOBOGUARA_INTERVAL_SEC=1800
+      - LOBOGUARA_VERIFY_SSL=false
+      - LOBOGUARA_TLP=TLP:AMBER
+      - LOBOGUARA_SCORE=50
+      - CONNECTOR_LOG_LEVEL=INFO
+    restart: always
+    networks:
+      - your_network_name
+
+networks:
+  your_network_name:
+    external: true
+```
+
+Replace `your_opencti_token`, `unique_connector_id`, `your_loboguara_api_token`, and `your_network_name` with your actual OpenCTI token, unique connector ID, Lobo Guara API token, and network name.
+
+## License
+
+This project is licensed under the terms of the MIT license.
