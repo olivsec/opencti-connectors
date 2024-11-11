@@ -1,9 +1,11 @@
 import time
 import requests
-import base64
 import logging
-from pycti import OpenCTIConnectorHelper, get_config_variable
+from pycti import OpenCTIConnectorHelper
 import os
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class LoboGuaraConnector:
     def __init__(self):
@@ -22,10 +24,9 @@ class LoboGuaraConnector:
         }
         self.helper = OpenCTIConnectorHelper(config)
         self.api_url = os.getenv('OPENCTI_URL')
-        self.lobo_guara_url = os.getenv('LOBOGUARA_URL')
-        self.token_url = os.getenv('LOBOGUARA_TOKEN_URL')
-        self.username = os.getenv("LOBOGUARA_USERNAME")
-        self.password = os.getenv("LOBOGUARA_PASSWORD")
+        self.lobo_guara_url = "https://loboguara.olivsec.com.br/api/monitored_certificate_domains"
+        self.token_verify_url = "https://loboguara.olivsec.com.br/api/verify_token"
+        self.access_token = os.getenv("LOBOGUARA_API_TOKEN")
         self.interval_sec = int(os.getenv("LOBOGUARA_INTERVAL_SEC", 3600))
         self.verify_ssl = os.getenv("LOBOGUARA_VERIFY_SSL", "true").lower() == "true"
         self.tlp_marking = os.getenv("LOBOGUARA_TLP", "TLP:AMBER")
@@ -39,26 +40,27 @@ class LoboGuaraConnector:
         if self.interval_sec < 600:
             raise ValueError("LOBOGUARA_INTERVAL_SEC must be at least 600 seconds")
         
+        # Verifica o token no momento da inicialização
+        if not self.verify_token():
+            self.logger.error("Initial token is invalid or expired. Stopping the connector.")
+            raise ValueError("Token is invalid or expired.")
+
         # Create organization "Lobo Guara"
         self.organization_id = self.create_organization()
 
-    def get_token(self):
-        auth_str = f"{self.username}:{self.password}"
-        auth_bytes = auth_str.encode('utf-8')
-        auth_base64 = base64.b64encode(auth_bytes).decode('utf-8')
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f"Basic {auth_base64}"
-        }
-        response = requests.post(self.token_url, headers=headers, verify=self.verify_ssl)
-        if response.status_code != 200:
-            self.logger.error(f"Error getting token: {response.status_code} {response.text}")
-            response.raise_for_status()
-        return response.json().get("token")
+    def verify_token(self):
+        headers = {"x-access-tokens": self.access_token}
+        response = requests.get(self.token_verify_url, headers=headers, verify=self.verify_ssl)
+        self.logger.info(f"Token verification response: {response.status_code} - {response.text}")
+        if response.status_code == 200 and response.json().get("message") == "Token is valid":
+            self.logger.info("Token is valid.")
+            return True
+        else:
+            self.logger.error("Token is invalid or expired.")
+            return False
 
     def fetch_certificates(self):
-        token = self.get_token()
-        headers = {"Authorization": f"Bearer {token}"}
+        headers = {"x-access-tokens": self.access_token}
         response = requests.get(self.lobo_guara_url, headers=headers, verify=self.verify_ssl)
         if response.status_code != 200:
             self.logger.error(f"Error fetching certificates: {response.status_code} {response.text}")
